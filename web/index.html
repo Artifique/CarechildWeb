@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A new Flutter project for accessibility.">
+  
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Accessibility">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <!-- Web app manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <title>Accessibility</title>
+
+  <!-- Base href for Flutter web app -->
+  <base href="$FLUTTER_BASE_HREF">
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+
+<!-- Script for audio recording -->
+<script>
+  let mediaRecorder;
+  let audioChunks = [];
+  let audioBlobUrl;
+
+  function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+
+        mediaRecorder.addEventListener("dataavailable", event => {
+          audioChunks.push(event.data);
+        });
+
+        mediaRecorder.addEventListener("stop", () => {
+          const audioBlob = new Blob(audioChunks);
+          audioBlobUrl = URL.createObjectURL(audioBlob);
+          window.flutter_inappwebview.callHandler('onAudioRecorded', audioBlobUrl);
+        });
+      })
+      .catch(error => {
+        console.error('Error accessing microphone:', error);
+      });
+  }
+
+  function stopRecording() {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+    } else {
+      console.error('No active recording found');
+    }
+  }
+</script>
+
+</html>
